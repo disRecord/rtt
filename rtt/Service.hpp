@@ -103,6 +103,8 @@ namespace RTT
         typedef OperationInterface Factory;
         typedef boost::shared_ptr<Service> shared_ptr;
         typedef boost::shared_ptr<const Service> shared_constptr;
+        typedef boost::weak_ptr<Service> weak_ptr;
+        typedef boost::weak_ptr<const Service> weak_constptr;
         typedef std::vector<std::string> ProviderNames;
 
 #if BOOST_VERSION >= 105300
@@ -171,7 +173,7 @@ namespace RTT
         /**
          * The parent is the direct parent of this service.
          */
-        shared_ptr getParent() const { return parent; }
+        shared_ptr getParent() const { return parent.lock(); }
 
         /**
          * Return a standard container which contains all the sub-service names
@@ -573,7 +575,7 @@ namespace RTT
         std::string mname;
         std::string mdescription;
         TaskContext* mowner;
-        shared_ptr parent;
+        weak_ptr parent;
     };
 }
 
