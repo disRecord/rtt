@@ -502,8 +502,10 @@ namespace RTT
     void Logger::shutdown() {
         if (!d->started)
             return;
-        *this<<Logger::Info<<"Orocos Logging Deactivated." << Logger::endl;
-        this->logflush();
+		// Dirty fix fo rttlua SEGV on quiting
+		// Just comment out next two lines.
+        //*this<<Logger::Info<<"Orocos Logging Deactivated." << Logger::endl;
+        //this->logflush();
         d->started = false;
     }
 
