@@ -163,11 +163,6 @@ namespace RTT
                 {
 #ifndef OROBLD_OS_NO_ASM
                 case ConnPolicy::LOCK_FREE:
-                    // DataObjectLockFree does not support multiple writers. We have to enforce lock policy LOCKED in this case.
-                    if (policy.buffer_policy == PerInputPort || policy.buffer_policy == Shared) {
-                        RTT::log(Error) << "Lock-free data objects do not allow multiple writers at this moment and therefore cannot be used in connection with the PerInputPort or Shared buffer policies." << endlog();
-                        return NULL;
-                    }
                     data_object.reset( new base::DataObjectLockFree<T>(initial_value, policy) );
                     break;
 #else
@@ -225,14 +220,6 @@ namespace RTT
         {
             typename internal::ConnInputEndpoint<T>::shared_ptr endpoint = port.getEndpoint();
             typename base::ChannelElement<T>::shared_ptr buffer = port.getSharedBuffer();
-
-            // Set buffer policy of the port
-            if (!(endpoint->setBufferPolicy(policy.buffer_policy))) {
-                log(Error) << "You mixed incompatible buffer policies for output port " << port.getName() << ": "
-                           << "The new connection requests a " << policy.buffer_policy << " policy, "
-                           << "but the port already has a " << endpoint->getBufferPolicy() << " policy." << endlog();
-                return typename internal::ConnOutputEndpoint<T>::shared_ptr();
-            }
 
             // Note: PerInputPort implies PUSH and PerOutputPort implies PULL
             bool pull = policy.pull;
@@ -311,14 +298,6 @@ namespace RTT
         {
             typename internal::ConnOutputEndpoint<T>::shared_ptr endpoint = port.getEndpoint();
             typename base::ChannelElement<T>::shared_ptr buffer = port.getSharedBuffer();
-
-            // Set buffer policy of the port
-            if (!(endpoint->setBufferPolicy(policy.buffer_policy))) {
-                log(Error) << "You mixed incompatible buffer policies for input port " << port.getName() << ": "
-                           << "The new connection requests a " << policy.buffer_policy << " policy, "
-                           << "but the port already has a " << endpoint->getBufferPolicy() << " policy." << endlog();
-                return typename internal::ConnOutputEndpoint<T>::shared_ptr();
-            }
 
             // Note: PerInputPort implies PUSH and PerOutputPort implies PULL
             bool pull = policy.pull;
