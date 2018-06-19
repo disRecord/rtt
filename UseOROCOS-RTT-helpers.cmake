@@ -107,13 +107,19 @@ endfunction( orocos_get_manifest_deps RESULT)
 #   ${PACKAGE}_LDFLAGS_OTHER    The linker flags other than -L and -l for this package.
 #   ${PACKAGE}_<LIB>_LIBRARY    Each fully resolved link library <LIB> in the above list.
 # 
-# Usage: orocos_find_package( pkg-name [OROCOS_ONLY] [REQUIRED] [VERBOSE]")
+# Usage: orocos_find_package( pkg-name [OROCOS_ONLY] [REQUIRED] [VERBOSE] [CHECK_NON_OROCOS])
 #
+# Without OROCOS_ONLY option it looks for `pkg-name-$OROCOS_TARGET' and `pkg-name' packages.
+# If OROCOS_ONLY option is set it looks only for `pkg-name-$OROCOS_TARGET'.
+#
+# If OROCOS_ONLY and REQUIRED are set option CHECK_NON_OROCOS option supresses error if package version 
+# without orocos target is found. This option is convinent if package.xml contains non OROCOS packages.
+# 
 macro( orocos_find_package PACKAGE )
 
   oro_parse_arguments(ORO_FIND
     ""
-    "OROCOS_ONLY;REQUIRED;VERBOSE"
+    "OROCOS_ONLY;REQUIRED;VERBOSE;CHECK_NON_OROCOS"
     ${ARGN}
     )
 
@@ -205,7 +211,29 @@ macro( orocos_find_package PACKAGE )
 
     else()
       if(ORO_FIND_REQUIRED)
-        message(FATAL_ERROR "[UseOrocos] Could not find package '${PACKAGE}'.")
+        if(ORO_FIND_CHECK_NON_OROCOS AND ORO_FIND_OROCOS_ONLY)
+          # check if package without orocos target presents
+
+          # Use standard cmake routines
+          find_package(${PACKAGE} QUIET)
+ 
+          if (NOT ${PACKAGE}_FOUND)
+            # Now try pkg-config
+            
+            # Disable caching in FindPkgConfig.cmake as otherwise changes in
+            # Orocos .pc files are not detected before the cmake cache is deleted
+            set(${PACKAGE}_PKGCONFIG_FOUND FALSE)
+             
+            # Use pkg-config and cmake to find package
+            pkg_search_module(${PACKAGE}_PKGCONFIG ${PACKAGE})
+          
+            if (NOT ${PACKAGE}_PKGCONFIG_FOUND)
+              message(FATAL_ERROR "[UseOrocos] Could not find package '${PACKAGE}' with target '${OROCOS_TARGET}' and its non OROCOS version does not present either.")
+            endif()
+          endif()
+        else()
+          message(FATAL_ERROR "[UseOrocos] Could not find package '${PACKAGE}'.")
+        endif()
       else()
         if(ORO_FIND_VERBOSE)
           message(WARNING "[UseOrocos] Could not find package '${PACKAGE}'. It does not provide a .pc file for exporting its build/link flags (or one of it 'Requires' dependencies was not found).")
@@ -243,13 +271,19 @@ endmacro( orocos_find_package PACKAGE )
 #   USE_OROCOS_COMPILE_FLAGS    All exported compile flags from packages within the current scope.
 #   USE_OROCOS_LINK_FLAGS       All exported link flags from packages within the current scope.
 #
-# Usage: orocos_use_package( pkg-name [OROCOS_ONLY] [REQUIRED] [VERBOSE]")
+# Usage: orocos_use_package( pkg-name [OROCOS_ONLY] [REQUIRED] [VERBOSE] [CHECK_NON_OROCOS]")
 #
+# Without OROCOS_ONLY option it looks for `pkg-name-$OROCOS_TARGET' and `pkg-name' packages.
+# If OROCOS_ONLY option is set it looks only for `pkg-name-$OROCOS_TARGET'.
+#
+# If OROCOS_ONLY and REQUIRED are set option CHECK_NON_OROCOS option supresses error if package version 
+# without orocos target is found. This option is convinent if package.xml contains non OROCOS packages.
+# 
 macro( orocos_use_package PACKAGE )
 
   oro_parse_arguments(ORO_USE
     ""
-    "OROCOS_ONLY;REQUIRED;VERBOSE"
+    "OROCOS_ONLY;REQUIRED;VERBOSE;CHECK_NON_OROCOS"
     ${ARGN}
     )
 

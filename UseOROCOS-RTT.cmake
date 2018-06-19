@@ -179,7 +179,7 @@ if(OROCOS-RTT_FOUND AND NOT USE_OROCOS_RTT)
     rosbuild_invoke_rospack(${ORO_ROSBUILD_PACKAGE_NAME} pkg DEPS depends1)
     string(REGEX REPLACE "\n" ";" pkg_DEPS2 "${pkg_DEPS}" )
     foreach(ROSDEP ${pkg_DEPS2})
-      orocos_use_package( ${ROSDEP} OROCOS_ONLY)
+      orocos_use_package( ${ROSDEP} OROCOS_ONLY REQUIRED CHECK_NON_OROCOS)
     endforeach(ROSDEP ${pkg_DEPS2})
 
   elseif(ORO_USE_CATKIN)
@@ -197,7 +197,7 @@ if(OROCOS-RTT_FOUND AND NOT USE_OROCOS_RTT)
     # Get catkin build_depend dependencies
     foreach(DEP ${${PROJECT_NAME}_BUILD_DEPENDS})
       # We use OROCOS_ONLY so that we only find .pc files with the orocos target on them
-      orocos_use_package( ${DEP} OROCOS_ONLY) 
+      orocos_use_package( ${DEP} OROCOS_ONLY REQUIRED CHECK_NON_OROCOS ) 
     endforeach(DEP ${DEPS}) 
 
   else()
@@ -216,7 +216,7 @@ if(OROCOS-RTT_FOUND AND NOT USE_OROCOS_RTT)
     orocos_get_manifest_deps( DEPS )
     #message("orocos_get_manifest_deps are: ${DEPS}")
     foreach(DEP ${DEPS})
-      orocos_use_package( ${DEP} OROCOS_ONLY) 
+      orocos_use_package( ${DEP} OROCOS_ONLY REQUIRED CHECK_NON_OROCOS ) 
     endforeach(DEP ${DEPS}) 
   endif()
 
