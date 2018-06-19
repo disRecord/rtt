@@ -214,13 +214,22 @@ macro( orocos_find_package PACKAGE )
         if(ORO_FIND_CHECK_NON_OROCOS AND ORO_FIND_OROCOS_ONLY)
           # check if package without orocos target presents
 
-          # Disable caching in FindPkgConfig.cmake as otherwise changes in
-          # Orocos .pc files are not detected before the cmake cache is deleted
-          set(${PACKAGE}_COMP_NON_OROCOS_FOUND FALSE)
-
-          pkg_search_module(${PACKAGE}_COMP_NON_OROCOS ${PACKAGE})
-          if (NOT ${PACKAGE}_COMP_NON_OROCOS_FOUND)
+          # Use standard cmake routines
+          find_package(${PACKAGE} QUIET)
+ 
+          if (NOT ${PACKAGE}_FOUND)
+            # Now try pkg-config
+            
+            # Disable caching in FindPkgConfig.cmake as otherwise changes in
+            # Orocos .pc files are not detected before the cmake cache is deleted
+            set(${PACKAGE}_PKGCONFIG_FOUND FALSE)
+             
+            # Use pkg-config and cmake to find package
+            pkg_search_module(${PACKAGE}_PKGCONFIG ${PACKAGE})
+          
+            if (NOT ${PACKAGE}_PKGCONFIG_FOUND)
               message(FATAL_ERROR "[UseOrocos] Could not find package '${PACKAGE}' with target '${OROCOS_TARGET}' and its non OROCOS version does not present either.")
+            endif()
           endif()
         else()
           message(FATAL_ERROR "[UseOrocos] Could not find package '${PACKAGE}'.")
