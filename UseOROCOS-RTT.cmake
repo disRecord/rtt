@@ -131,6 +131,8 @@ if(OROCOS-RTT_FOUND AND NOT USE_OROCOS_RTT)
 
   # Enable auto-linking
   set(OROCOS_NO_AUTO_LINKING OFF CACHE BOOL "Disable automatic linking to targets in orocos_use_package() or from dependencies in the package manifest. Auto-linking is enabled by default.")
+  # Strict check for build dependencies in package manifest
+  set(OROCOS_STRICT_MANIFEST_CHECK OFF CACHE BOOL "Check if build dependecies mentioned in the package manifest are present in system and generate error otherwise. This prevent build system from silenly skipping not found OROCOS packages from the manifst. ")
 
   if (ORO_USE_ROSBUILD)
     # Infer package name from directory name.
@@ -179,7 +181,11 @@ if(OROCOS-RTT_FOUND AND NOT USE_OROCOS_RTT)
     rosbuild_invoke_rospack(${ORO_ROSBUILD_PACKAGE_NAME} pkg DEPS depends1)
     string(REGEX REPLACE "\n" ";" pkg_DEPS2 "${pkg_DEPS}" )
     foreach(ROSDEP ${pkg_DEPS2})
-      orocos_use_package( ${ROSDEP} OROCOS_ONLY REQUIRED CHECK_NON_OROCOS)
+      if (OROCOS_STRICT_MANIFEST_CHECK)
+         orocos_use_package( ${ROSDEP} OROCOS_ONLY REQUIRED CHECK_NON_OROCOS)
+      else()
+         orocos_use_package( ${ROSDEP} OROCOS_ONLY)
+      endif()
     endforeach(ROSDEP ${pkg_DEPS2})
 
   elseif(ORO_USE_CATKIN)
@@ -197,7 +203,11 @@ if(OROCOS-RTT_FOUND AND NOT USE_OROCOS_RTT)
     # Get catkin build_depend dependencies
     foreach(DEP ${${PROJECT_NAME}_BUILD_DEPENDS})
       # We use OROCOS_ONLY so that we only find .pc files with the orocos target on them
-      orocos_use_package( ${DEP} OROCOS_ONLY REQUIRED CHECK_NON_OROCOS ) 
+      if (OROCOS_STRICT_MANIFEST_CHECK)
+         orocos_use_package( ${DEP} OROCOS_ONLY REQUIRED CHECK_NON_OROCOS)
+      else()
+         orocos_use_package( ${DEP} OROCOS_ONLY)
+      endif()
     endforeach(DEP ${DEPS}) 
 
   else()
@@ -216,7 +226,11 @@ if(OROCOS-RTT_FOUND AND NOT USE_OROCOS_RTT)
     orocos_get_manifest_deps( DEPS )
     #message("orocos_get_manifest_deps are: ${DEPS}")
     foreach(DEP ${DEPS})
-      orocos_use_package( ${DEP} OROCOS_ONLY REQUIRED CHECK_NON_OROCOS ) 
+      if (OROCOS_STRICT_MANIFEST_CHECK)
+         orocos_use_package( ${DEP} OROCOS_ONLY REQUIRED CHECK_NON_OROCOS)
+      else()
+         orocos_use_package( ${DEP} OROCOS_ONLY)
+      endif()
     endforeach(DEP ${DEPS}) 
   endif()
 
